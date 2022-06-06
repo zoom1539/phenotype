@@ -3,7 +3,7 @@ import cv2
 from math import sqrt
 
 
-def triangulte(K1, K2, T_2_1, point_img1, point_img2):
+def triangulate1(K1, K2, T_2_1, point_img1, point_img2):
     T1 = np.zeros((3,4))
     T1[:3,:3] = np.eye(3,3)
     P1 = K1.dot(T1)
@@ -22,6 +22,33 @@ def triangulte(K1, K2, T_2_1, point_img1, point_img2):
     point_3d = point_3d_homo.T[:-1] / point_3d_homo.T[-1]
 
     return point_3d
+
+def triangulate2(Ks, Ts, coords):
+    """ 
+    :param Ks: (n, 3,3)
+    :param Ts: (n, 4,4) world to cam
+    :param coords: (n, 3), (x,y,score)
+    :returns: (n, 4), (x,y,z,score)
+    """
+    A = []
+    for K, T, coord in zip(Ks, Ts, coords):
+        P = K.dot(np.linalg.inv(T)[:3, :4])
+        
+        a = coord[0] * P[2] - P[0]
+        a = coord[2] * a / np.linalg.norm(a)
+        A.append(a)
+        
+        a = coord[1] * P[2] - P[1]
+        a = coord[2] * a / np.linalg.norm(a)
+        A.append(a)
+    
+    A = np.array(A)
+    
+    u, s, vh =  np.linalg.svd(A, full_matrices=False)
+    point_3d_homo = vh[3, :]
+    point_3d = point_3d_homo.T[:-1] / point_3d_homo.T[-1]
+
+    return np.append(point_3d, 1)
 
 def calc_epipolar_dist(kp1, K1, T1, kp2, K2, T2):
     """ refer to 视觉slam 十四讲

@@ -1,1 +1,1 @@
-from .mvg import triangulte, calc_epipolar_dist
+from .mvg import triangulate1, triangulate2, calc_epipolar_dist

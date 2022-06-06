@@ -1,6 +1,6 @@
 from scipy.optimize import linear_sum_assignment
 import numpy as np
-from ..mvg import calc_epipolar_dist
+from ..mvg import calc_epipolar_dist, triangulate2
 
 class KPUnion:
     def __init__(self, Ks, Ts):
@@ -19,9 +19,20 @@ class KPUnion:
         """
         :returns: (x,y,z,score)
         """
-        pass
-    
-
+        Ks = []
+        Ts = []
+        coords = []
+        for kp in self.kps:
+            cid = list(kp.keys())[0]
+            K = self.Ks[cid]
+            Ks.append(K)
+            T = self.Ts[cid]
+            Ts.append(T)
+            coord = kp[cid]
+            coords.append(coord)
+        
+        return triangulate2(Ks, Ts, coords)
+            
 class Union:
     def __init__(self, Ks, Ts):
         self.Ks = Ks
