@@ -19,6 +19,9 @@ class KPUnion:
         """
         :returns: (x,y,z,score)
         """
+        if len(self.kps) < 2:
+            return False, None
+        
         Ks = []
         Ts = []
         coords = []
@@ -31,7 +34,7 @@ class KPUnion:
             coord = kp[cid]
             coords.append(coord)
         
-        return triangulate2(Ks, Ts, coords)
+        return True, triangulate2(Ks, Ts, coords)
             
 class Union:
     def __init__(self, Ks, Ts):
@@ -51,7 +54,7 @@ class Union:
         :returns: (kp_num,4) 4:(x,y,z,score)
         """
         if len(self.clusters) < 2:
-            return None
+            return False, None
         
         def key(elem):
             k = list(elem.keys())[0]
@@ -76,9 +79,10 @@ class Union:
         
         kp_3ds = []
         for kp_union in kp_unions:
-            kp_3d = kp_union.get_3d()
-            kp_3ds.append(kp_3d)
-        return kp_3ds
+            sts, kp_3d = kp_union.get_3d()
+            if sts:
+                kp_3ds.append(kp_3d)
+        return True, kp_3ds
 
     def _calc_cost(self, kp_unions, cluster):
         """

@@ -5,7 +5,7 @@ import glob
 # refer to https://blog.csdn.net/briblue/article/details/86569448
 
 ###param
-folder = '/home/ubuntu/Documents/phenotype_device/data/calib/OneCamera/7/'
+folder = '/home/ubuntu/Documents/phenotype_device/data/test2/calib/OneCamera/12/'
 
 
 ###start

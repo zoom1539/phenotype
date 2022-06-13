@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from math import sqrt
+from math import sqrt, exp
 
 
 def triangulate1(K1, K2, T_2_1, point_img1, point_img2):
@@ -44,11 +44,23 @@ def triangulate2(Ks, Ts, coords):
     
     A = np.array(A)
     
-    u, s, vh =  np.linalg.svd(A, full_matrices=False)
+    _, _, vh =  np.linalg.svd(A, full_matrices=False)
+    
     point_3d_homo = vh[3, :]
     point_3d = point_3d_homo.T[:-1] / point_3d_homo.T[-1]
-
-    return np.append(point_3d, 1)
+    
+    # score
+    coords = np.array(coords)
+    total_score = np.sum(np.array(coords)[:, 2])
+    s = 0.0
+    for K, T, coord in zip(Ks, Ts, coords):
+        Pc = np.linalg.inv(T).dot(np.append(point_3d, 1))[:3]
+        p = K.dot(Pc)
+        p = (p / p[2])[:2]
+        d = np.linalg.norm(p - coord[:2])
+        s += exp(-d) * coord[2] / total_score
+        
+    return np.append(point_3d, s)
 
 def calc_epipolar_dist(kp1, K1, T1, kp2, K2, T2):
     """ refer to 视觉slam 十四讲

@@ -5,26 +5,19 @@ import glob
 # refer to https://blog.csdn.net/weian4913/article/details/95523678
 
 ###param
-cam1 = '12'
-cam2 = '1'
+cam = '6'
 folder_pre = '/home/ubuntu/Documents/phenotype_device/data/test2/calib/MultiCamera/'
 calib_pre = '/home/ubuntu/Documents/phenotype_device/data/test2/calib/OneCamera/'
 
 
 #
-folder = folder_pre + cam1 + '_' + cam2 + '/'
-img1 = folder + cam1 + '_20220609141244.jpg'
-img2 = folder + cam2 + '_20220609141244.jpg'
+folder = folder_pre + 'g_' + cam + '/'
+img = folder + cam + '_20220609141404.jpg'
 
-calib_folder = calib_pre + cam1 + '/'
+calib_folder = calib_pre + cam + '/'
 fs = cv2.FileStorage(calib_folder + 'result.yml', cv2.FILE_STORAGE_READ)
 matrix1 = fs.getNode('matrix').mat()
 dist1 = fs.getNode('dist').mat()
-
-calib_folder = calib_pre + cam2 + '/'
-fs = cv2.FileStorage(calib_folder + 'result.yml', cv2.FILE_STORAGE_READ)
-matrix2 = fs.getNode('matrix').mat()
-dist2 = fs.getNode('dist').mat()
 
 ###start
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -37,7 +30,9 @@ objp[:,:2] = np.mgrid[0:w,0:h].T.reshape(-1,2) * 0.045
 
 #
 def calc_ex(objp, img_path, w, h):
-    
+    """
+    :returns: cam to world
+    """
     img = cv2.imread(img_path)
     gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
     # 找到棋盘格角点
@@ -64,14 +59,12 @@ def calc_ex(objp, img_path, w, h):
 
         return ex
 
-ex1 = calc_ex(objp, img1, w, h)
-ex2 = calc_ex(objp, img2, w, h)
+ex = calc_ex(objp, img, w, h)
+T_w_6 = np.matrix(ex).I
 
-T_12_1 = np.matrix(ex1) * np.matrix(ex2).I
-print(ex1)
-print(ex2)
-print(T_12_1)
+print(T_w_6)
+
 
 fs = cv2.FileStorage(folder + 'result.yml', cv2.FILE_STORAGE_WRITE)
-fs.write('T_12_1', T_12_1)
+fs.write('T_w_6', T_w_6)
 fs.release()

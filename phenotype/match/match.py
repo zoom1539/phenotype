@@ -16,8 +16,8 @@ class Match:
         unions = []
 
         for cam_id, kp_clusters in enumerate(kp_clusters_group):
-            cost, mask = self._calc_cost(unions, kp_clusters)
-            if cost == None:
+            cost, mask = self._calc_cost(unions, kp_clusters, cam_id)
+            if np.all(cost == 0):
                 for kp_cluster in kp_clusters:
                     union = Union(self.Ks, self.Ts)
                     union.push({cam_id:kp_cluster})
@@ -27,7 +27,7 @@ class Match:
                 selected = set(cols)
                 for row, col in zip(rows, cols):
                     if cost[row, col] <  EP_DIST_CLUSTER2UNION_THRES and mask[row, col] == 0:
-                        unions[row].push(kp_clusters[col])
+                        unions[row].push({cam_id:kp_clusters[col]})
                     else:
                         union = Union(self.Ks, self.Ts)
                         union.push({cam_id:kp_clusters[col]})
@@ -41,10 +41,11 @@ class Match:
         
         return unions
 
-    def _calc_cost(self, unions, kp_clusters):
+    def _calc_cost(self, unions, kp_clusters, cam_id):
         """
         :param unions: 
         :param kp_clusters: (cluster_num, kp_num, 3)
+        :param cam_id: according to kp_clusters
         :returns: cost, mean epipolar dist
         :returns: mask, if every epipolar dist is less than thres
         """
@@ -52,35 +53,44 @@ class Match:
         mask = np.zeros((len(unions), len(kp_clusters)))
         for i, union in enumerate(unions):
             for j, kp_cluster in enumerate(kp_clusters):
-                cost[i][j], mask[i][j] = self._calc_dist(union, kp_cluster)
+                cost[i][j], mask[i][j] = self._calc_dist(union, kp_cluster, cam_id)
 
         return cost, mask
     
-    def _calc_dist(self, union, kp_cluster):
+    def _calc_dist(self, union, kp_cluster, cam_id):
+        """
+        :param union: 
+        :param kp_clusters: (cluster_num, kp_num, 3)
+        :param cam_id: according to kp_clusters
+        :returns: cost, mask
+        """
         dists = []
         mask = 0
         for cluster in union.clusters:
-            dist = self._calc_epipolar_dist(cluster, kp_cluster)
+            dist = self._calc_epipolar_dist(cluster, kp_cluster, cam_id)
             dists.append(dist)
             if dist > EP_DIST_CLUSTER2CLUSTER_THRES:
                 mask = 1
         
         return np.mean(dists), mask
 
-    def _calc_epipolar_dist(self, cluster1, cluster2):
+    def _calc_epipolar_dist(self, cluster1, cluster2, cam_id):
         """
         :param cluster1: {cam_id:(kp_num,3)} 3:(x,y,score)
-        :param cluster2: {cam_id:(kp_num,3)} 3:(x,y,score)
+        :param cluster2: (kp_num,3)
+        :param cam_id: according to cluster2
         :returns: epipolar dist
         """
+        # print(cluster1)
+        # input()
         cid1 = list(cluster1.keys())[0]
         K1 = self.Ks[cid1]
         T1 = self.Ts[cid1]
-        cid2 = list(cluster2.keys())[0]
+        cid2 = cam_id
         K2 = self.Ks[cid2]
         T2 = self.Ts[cid2]
-        dists = np.zeros((len(cluster1[cid1]), len(cluster2[cid2])))
-        for i, kp1 in enumerate(cluster1):
+        dists = np.zeros((len(cluster1[cid1]), len(cluster2)))
+        for i, kp1 in enumerate(cluster1[cid1]):
             for j, kp2 in enumerate(cluster2):
                 dists[i][j] = calc_epipolar_dist(kp1, K1, T1, kp2, K2, T2)
 
