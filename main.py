@@ -8,13 +8,10 @@ phenotype = PhenotypeTest()
 kp_3d_clusters = phenotype.extract_3d_kp()
 
 
+# show
 fig = plt.figure()
 ax3d = Axes3D(fig)
 
-# points = [[[1,2,3], [3,4,5]],[[5,6,7], [7,8,9],[10,11,12]]]
-
-
-#
 kp_pre = [0, 0, 0]
 for i, kp_3d_cluster in enumerate(kp_3d_clusters):
     for j, kp_3d in enumerate(kp_3d_cluster):
@@ -30,9 +27,6 @@ for i, kp_3d_cluster in enumerate(kp_3d_clusters):
             ax3d.plot(x,y,z,c="r")
         
         kp_pre = kp
-
-# ax3d.scatter(x,y,z,c="b",marker="*")
-# ax3d.plot(x,y,z,c="b")
 
 ax3d.set_xlabel("X")
 ax3d.set_ylabel("Y")

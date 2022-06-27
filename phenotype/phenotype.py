@@ -163,27 +163,6 @@ class PhenotypeTest:
         
         return kp_3d_clusters
         
-    
 
 
 
-
-
-
-
-
-if __name__ == '__main__':
-    # A = np.zeros((2,3))
-    # A[0,1] = np.zeros((2,2))
-    # print(A.shape)
-
-    list0 = [0,1]
-    list1 = [2,3]
-    list0 += list1
-    
-    # for i in range(0,6):
-    #     for j in range(0,i+1):
-    #         list.append(j)
-    #     list1.append(list)
-    #     list = []
-    print(list0)
